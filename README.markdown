@@ -2,6 +2,8 @@
 
 Amistad adds friendships management into a rails application. it supports ActiveRecord, Mongoid and MongoMapper.
 
+NOTE: This fork works with devise_invitable.  User methods containing the string "*invite*" are now "*friend_invite*".  All else is the same.
+
 ## Installation ##
 
 Add the following line in your Gemfile:
