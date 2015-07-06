@@ -11,8 +11,8 @@ module Amistad
         :foreign_key => "friendable_id"
 
 
-      has_many  :pending_invited, -> { where(:'friendships.pending' => true, :'friendships.blocker_id' => nil) }, :through => :friendships, :source => :friend
-      has_many  :invited, -> { where(:'friendships.pending' => false, :'friendships.blocker_id' => nil) }, :through => :friendships, :source => :friend
+      has_many  :friend_pending_invited, -> { where(:'friendships.pending' => true, :'friendships.blocker_id' => nil) }, :through => :friendships, :source => :friend
+      has_many  :friend_invited, -> { where(:'friendships.pending' => false, :'friendships.blocker_id' => nil) }, :through => :friendships, :source => :friend
 
       #####################################################################################
       # inverse friendships
@@ -21,8 +21,8 @@ module Amistad
         :class_name => "Amistad::Friendships::#{Amistad.friendship_model}",
         :foreign_key => "friend_id"
 
-      has_many  :pending_invited_by, ->  { where(:'friendships.pending' => true, :'friendships.blocker_id' => nil) }, :through => :inverse_friendships, :source => :friendable
-      has_many  :invited_by, -> { where(:'friendships.pending' => false, :'friendships.blocker_id' => nil) }, :through => :inverse_friendships, :source => :friendable
+      has_many  :friend_pending_invited_by, ->  { where(:'friendships.pending' => true, :'friendships.blocker_id' => nil) }, :through => :inverse_friendships, :source => :friendable
+      has_many  :ifriend_nvited_by, -> { where(:'friendships.pending' => false, :'friendships.blocker_id' => nil) }, :through => :inverse_friendships, :source => :friendable
 
       #####################################################################################
       # blocked friendships
@@ -37,7 +37,7 @@ module Amistad
     end
 
     # suggest a user to become a friend. If the operation succeeds, the method returns true, else false
-    def invite(user)
+    def friend_invite(user)
       return false if user == self || find_any_friendship_with(user)
       Amistad.friendship_class.new{ |f| f.friendable = self ; f.friend = user }.save
     end
@@ -45,7 +45,7 @@ module Amistad
     # approve a friendship invitation. If the operation succeeds, the method returns true, else false
     def approve(user)
       friendship = find_any_friendship_with(user)
-      return false if friendship.nil? || invited?(user)
+      return false if friendship.nil? || friend_invited?(user)
       friendship.update_attribute(:pending, false)
     end
 
@@ -70,7 +70,7 @@ module Amistad
 
     # total # of invited and invited_by without association loading
     def total_friends
-      self.invited(false).count + self.invited_by(false).count
+      self.friend_invited(false).count + self.friend_invited_by(false).count
     end
 
     # blocks a friendship
@@ -114,14 +114,14 @@ module Amistad
     end
 
     # checks if a current user received invitation from given user
-    def invited_by?(user)
+    def friend_invited_by?(user)
       friendship = find_any_friendship_with(user)
       return false if friendship.nil?
       friendship.friendable_id == user.id
     end
 
     # checks if a current user invited given user
-    def invited?(user)
+    def friend_invited?(user)
       friendship = find_any_friendship_with(user)
       return false if friendship.nil?
       friendship.friend_id == user.id
